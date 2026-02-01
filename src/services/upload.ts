@@ -1,7 +1,9 @@
 import { Readable } from "stream";
+
 import { getS3Storage } from "./storage";
 import { logger } from "../shared/logger";
 import { config } from "../shared/config";
+import { sendSlackMessage, formatStartMessage } from "./slack";
 
 export interface UploadResult {
   jobId: string;
@@ -25,6 +27,8 @@ export async function uploadFile(
     useS3: config.useS3,
     streaming: true,
   });
+
+  await sendSlackMessage(formatStartMessage(jobId, filename));
 
   if (config.useS3) {
     const storage = getS3Storage();
