@@ -1,4 +1,5 @@
 import winston from "winston";
+import { config } from "./config";
 
 const { combine, timestamp, errors, splat, json, colorize, printf } =
   winston.format;
@@ -25,8 +26,8 @@ const consoleFormat = combine(
 );
 
 export const logger = winston.createLogger({
-  level: "info",
-  defaultMeta: { service: "ocm-import" },
+  level: config.logLevel,
+  defaultMeta: { service: "clinic-events-processor" },
   transports: [
     new winston.transports.File({
       filename: "logs/error.log",
