@@ -1,3 +1,4 @@
+[![CI](https://github.com/nagdahimanshu/clinic-events-processor/actions/workflows/ci.yml/badge.svg)](https://github.com/nagdahimanshu/clinic-events-processor/actions/workflows/ci.yml)
 # Client Events Processor
 
 A Node.js service that streams and processes clinic event data from CSV files, computes weekly analytics and reports live progress to Slack
