@@ -38,7 +38,7 @@ export async function processFile(job: ProcessJob): Promise<void> {
       throw new Error("Either s3Key or stream must be provided");
     }
 
-    const { metrics } = await processCSV(
+    const { currProgress: currProgress, analytics } = await processCSV(
       stream,
       (progressMetrics) => {
         logger.debug("Processing progress", {
@@ -52,10 +52,16 @@ export async function processFile(job: ProcessJob): Promise<void> {
 
     logger.info("CSV processing completed", {
       jobId,
-      totalRows: metrics.totalRows,
-      errors: metrics.errors,
-      revenue: metrics.revenue,
-      duration: metrics.endTime! - metrics.startTime,
+      totalRows: currProgress.totalRows,
+      errors: currProgress.errors,
+      revenue: currProgress.revenue,
+      duration: currProgress.endTime! - currProgress.startTime,
+    });
+
+    logger.debug("Week per week metrics has been calculated successfully", {
+      jobId,
+      filename,
+      analytics,
     });
 
     // Clean up file from S3 if it was uploaded
