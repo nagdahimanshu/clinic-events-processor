@@ -1,1 +1,144 @@
-TODO
+# Client Events Processor
+
+A Node.js service that streams and processes clinic event data from CSV files, computes weekly analytics and reports live progress to Slack
+
+## Requirements
+
+- Upload CSV files via web interface
+- Stream and process CSV files without loading entire file into memory
+- Send Slack notification when processing starts
+- Send progress updates every 10 seconds with live metrics (rows processed, revenue, errors)
+- Send completion message
+- Calculate week-by-week metrics: revenue totals, revenue per treatment, appointments, bookings
+
+## Assumptions
+
+- CSV files contain patient event data with timestamps, revenue amounts and treatment types
+- Only `TREATMENT_COMPLETED` events have revenue values
+- Revenue is tracked by `treatment_type` column not `event_type`
+- No database persistence required
+
+## Tech Stack
+
+- Node.js + TypeScript
+- Express.js
+- AWS S3 (optional, configurable)
+- Winston (structured logging)
+- Docker + Docker Compose
+
+## Architecture
+
+The application follows a clean layered architecture:
+
+```
+Routes → Controllers → Services → Domain
+```
+
+- **Domain Layer**: Pure business logic (CSV processing, incremental analytics)
+- **Services Layer**: Infrastructure (Slack, S3 storage, upload, process)
+- **Controllers**: HTTP request handling
+- **Routes**:  HTTP route definitions
+
+Please check [ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md) for detailed architecture decisions and trade-offs.
+
+## Getting Started
+
+### Option 1: Running Locally
+
+You will need Node.js 18+ installed.
+
+#### 1. Clone and Install
+
+```bash
+git clone https://github.com/nagdahimanshu/clinic-events-processor.git
+cd clinic-events-processor
+npm install
+```
+
+#### 2. Set Up Environment File
+
+Copy `.env.example` to `.env` and update the configuration:
+
+```bash
+cp env.example .env
+```
+
+**Required Configuration:**
+- `SLACK_WEBHOOK_URL` - Your Slack incoming webhook URL for notifications
+
+**Optional Configuration:**
+- `PORT` - Server port (defaults to 3000)
+- `SKIP_S3` - Set to `true` to skip S3 and process directly from stream (defaults to true)
+- `S3_BUCKET` - S3 bucket name (only needed if using S3)
+- `AWS_ACCESS_KEY_ID` - AWS credentials (only needed if using S3)
+- `AWS_SECRET_ACCESS_KEY` - AWS credentials (only needed if using S3)
+- `LOG_LEVEL` - Logging level: debug, info, warn, error
+
+
+#### 3. Start the Application
+
+```bash
+npm run dev
+```
+
+This will:
+- Start the Express server on port 3000
+- Serve the frontend at http://localhost:3000
+
+Check if the server is running at: `http://localhost:3000/health` and it should return `{"status":"ok"}`
+
+### Option 2: Running with Docker
+
+Run the application with Docker Compose:
+
+```bash
+cd docker
+docker-compose up -d --build
+```
+
+This builds the Docker image and starts the application. The `--build` flag ensures the image is rebuilt every time.
+
+Access the application at: `http://localhost:3000`
+
+
+## API Endpoints
+
+- `POST /api/upload` - Upload and process CSV file
+- `GET /health` - Health check endpoint
+- `GET /metrics` - Prometheus metrics endpoint
+
+## CSV File Format
+
+Your CSV file should include these columns:
+
+**Required:**
+- `event_id` - Unique event identifier
+- `clinic_id` - Clinic identifier
+- `patient_id` - Patient identifier
+- `event_type` - Type of event (e.g., TREATMENT_COMPLETED, APPOINTMENT_CREATED)
+- `event_timestamp` - ISO timestamp (e.g., 2025-01-20T10:00:00Z)
+- `revenue_amount` - Revenue amount (numeric, only for TREATMENT_COMPLETED events)
+
+**Optional:**
+- `treatment_type` - Type of treatment (e.g., implants, veneers, aligners) - used for revenue breakdown
+- `channel` - Channel through which the event occurred
+
+## Development
+
+### Scripts
+
+- `npm run dev` - Start dev server with hot reload
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm test` - Run tests
+- `npm run test:coverage` - Generate coverage report
+
+## Future Improvements
+
+If I had more time to work on this, here are the key things I would focus on to make it production ready and scalable:
+
+- I would add request timeouts to prevent hanging requests and set a max processing time per file.
+- Right now Slack notifications can fail silently. I would add retry logic with exponential backoff so notifications are more reliable.
+- I would probably migrate processing to an async queue (SQS) so uploads don't block and we can handle more concurrent requests. This would also make it easier to track job status.
+- Also need to add rate limiting per user or IP to prevent abuse.
+- Right now there are only a few unit tests. I would add integration tests for the API endpoints and some basic E2E tests.
