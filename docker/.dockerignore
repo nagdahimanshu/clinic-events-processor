@@ -1,0 +1,13 @@
+node_modules
+dist
+logs
+.env
+.env.local
+*.log
+.git
+.gitignore
+README.md
+docker
+.DS_Store
+*.md
+
