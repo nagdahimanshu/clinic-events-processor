@@ -2,8 +2,12 @@ import { Request, Response, NextFunction } from "express";
 
 import { logger } from "../shared/logger";
 
+interface ErrorWithStatus extends Error {
+  status?: number;
+}
+
 export function errorHandler(
-  err: any,
+  err: unknown,
   req: Request,
   res: Response,
   _next: NextFunction,
@@ -14,8 +18,11 @@ export function errorHandler(
   });
 
   if (!res.headersSent) {
-    res.status(err.status || 500).json({
-      error: err.message || "Internal server error",
+    const status = (err as ErrorWithStatus).status || 500;
+    const message =
+      err instanceof Error ? err.message : "Internal server error";
+    res.status(status).json({
+      error: message,
     });
   }
 }

@@ -1,3 +1,6 @@
+import { Request } from "express";
+import { Readable } from "stream";
+
 export interface ProcessingMetrics {
   totalRows: number;
   errors: number;
@@ -36,4 +39,15 @@ export interface WeeklyData {
 export interface WeeklyAnalytics {
   weeks: WeeklyData[];
   totalWeeks: number;
+}
+
+export interface StreamingFile {
+  stream: Readable;
+  filename: string;
+  encoding: string;
+  mimetype: string;
+}
+
+export interface RequestWithStreamingFile extends Request {
+  streamingFile?: StreamingFile;
 }

@@ -14,6 +14,7 @@ A Node.js service that streams and processes clinic event data from CSV files, c
 ## Assumptions
 
 - CSV files contain patient event data with timestamps, revenue amounts and treatment types
+- Required CSV fields are: `event_id`, `clinic_id`, `patient_id`, `event_type`, `event_timestamp`
 - Only `TREATMENT_COMPLETED` events have revenue values
 - Revenue is tracked by `treatment_type` column not `event_type`
 - No database persistence required
@@ -111,17 +112,29 @@ Access the application at: `http://localhost:3000`
 
 Your CSV file should include these columns:
 
-**Required:**
-- `event_id` - Unique event identifier
-- `clinic_id` - Clinic identifier
-- `patient_id` - Patient identifier
-- `event_type` - Type of event (e.g., TREATMENT_COMPLETED, APPOINTMENT_CREATED)
-- `event_timestamp` - ISO timestamp (e.g., 2025-01-20T10:00:00Z)
-- `revenue_amount` - Revenue amount (numeric, only for TREATMENT_COMPLETED events)
+**Required Fields:**
+The following fields are mandatory and must be present in every row:
+- `event_id` - Unique event identifier (string, non-empty)
+- `clinic_id` - Clinic identifier (string, non-empty)
+- `patient_id` - Patient identifier (string, non-empty)
+- `event_type` - Type of event (string, non-empty, e.g., TREATMENT_COMPLETED, APPOINTMENT_CREATED)
+- `event_timestamp` - ISO 8601 timestamp (e.g., 2024-12-11T09:01:00.000Z)
 
-**Optional:**
-- `treatment_type` - Type of treatment (e.g., implants, veneers, aligners) - used for revenue breakdown
+**Optional Fields:**
+- `appointment_id` - Appointment identifier
+- `treatment_id` - Treatment identifier
 - `channel` - Channel through which the event occurred
+- `treatment_type` - Type of treatment (e.g., implants, veneers, aligners) - used for revenue breakdown
+- `appointment_status_snapshot` - Status of the appointment
+- `revenue_amount` - Revenue amount (numeric, must be non-negative if provided, only for TREATMENT_COMPLETED events)
+- `doctor_id` - Doctor identifier
+- `notes` - Additional notes
+
+**Validation:**
+- All required fields must be present and non-empty
+- `event_timestamp` must be a valid ISO 8601 date format
+- `revenue_amount` must be a valid number and non-negative (if provided)
+- Rows with validation errors will be skipped during processing
 
 ## Development
 
