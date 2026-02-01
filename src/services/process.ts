@@ -11,6 +11,7 @@ export interface ProcessJob {
   stream?: Readable;
 }
 
+// TODO: implement logic for CSV handling like calculate analytics
 async function processCSV(): Promise<{
   metrics: any;
 }> {
