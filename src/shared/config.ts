@@ -20,5 +20,6 @@ export const config = {
 
   // Processing
   progressIntervalMs: parseInt(process.env.PROGRESS_INTERVAL_MS || "10000", 10),
-  maxFileSize: 100 * 1024 * 1024, // 100MB
+  maxFileSize:
+    parseInt(process.env.MAX_FILE_SIZE_MB || "100", 10) * 1024 * 1024,
 } as const;

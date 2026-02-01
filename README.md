@@ -76,6 +76,8 @@ cp env.example .env
 - `AWS_ACCESS_KEY_ID` - AWS credentials (only needed if using S3)
 - `AWS_SECRET_ACCESS_KEY` - AWS credentials (only needed if using S3)
 - `LOG_LEVEL` - Logging level: debug, info, warn, error
+- `MAX_FILE_SIZE_MB` - Maximum file size in MB (defaults to 100MB). Files exceeding this size will be rejected during upload.
+- `PROGRESS_INTERVAL_MS` - Interval in milliseconds for progress updates (defaults to 10000ms)
 
 #### 3. Start the Application
 

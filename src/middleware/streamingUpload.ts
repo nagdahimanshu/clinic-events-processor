@@ -52,7 +52,14 @@ export function streamingUpload(
   bb.on("error", (error: Error) => {
     logger.error("Error while streaming file", error);
     if (!res.headersSent) {
-      res.status(400).json({ error: "Error while uploading file" });
+      const maxSizeMB = config.maxFileSize / (1024 * 1024);
+      if (error.message.includes("File size limit exceeded")) {
+        res.status(400).json({
+          error: `Error because file size exceeds maximum allowed size of ${maxSizeMB}MB`,
+        });
+      } else {
+        res.status(400).json({ error: "Error while uploading file" });
+      }
     }
   });
 
