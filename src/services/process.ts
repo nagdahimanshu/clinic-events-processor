@@ -1,10 +1,15 @@
 import { Readable } from "stream";
 
 import { getS3Storage } from "./storage";
+import {
+  sendSlackMessage,
+  formatProgressMessage,
+  formatCompletionMessage,
+  formatErrorMessage,
+} from "./slack";
 import { processCSV } from "../domain/csvProcessor";
 import { logger } from "../shared/logger";
 import { config } from "../shared/config";
-
 export interface ProcessJob {
   jobId: string;
   s3Key?: string;
@@ -38,7 +43,7 @@ export async function processFile(job: ProcessJob): Promise<void> {
       throw new Error("Either s3Key or stream must be provided");
     }
 
-    const { currProgress: currProgress, analytics } = await processCSV(
+    const { currProgress, analytics } = await processCSV(
       stream,
       (progressMetrics) => {
         logger.debug("Processing progress", {
@@ -46,6 +51,14 @@ export async function processFile(job: ProcessJob): Promise<void> {
           rowsProcessed: progressMetrics.totalRows,
           errors: progressMetrics.errors,
         });
+
+        sendSlackMessage(formatProgressMessage(jobId, progressMetrics)).catch(
+          (err) =>
+            logger.warn("Error while sending progress to the slack", {
+              jobId,
+              error: err.message,
+            }),
+        );
       },
       config.progressIntervalMs,
     );
@@ -64,17 +77,28 @@ export async function processFile(job: ProcessJob): Promise<void> {
       analytics,
     });
 
+    // Send completion message with metrics grouped by week
+    await sendSlackMessage(
+      formatCompletionMessage(jobId, currProgress, analytics),
+    );
+
     // Clean up file from S3 if it was uploaded
     if (s3Key && config.useS3) {
       const storage = getS3Storage();
       await storage.delete(s3Key);
       logger.info("File has been deleted from S3 after processing", {
         jobId,
+        filename,
         s3Key,
       });
     }
   } catch (error: any) {
-    logger.error("CSV processing failed", error, { jobId, s3Key, filename });
+    logger.error("Error while processing CSV", error, {
+      jobId,
+      s3Key,
+      filename,
+    });
+    await sendSlackMessage(formatErrorMessage(jobId, filename, error.message));
     throw error;
   }
 }
