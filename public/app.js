@@ -71,16 +71,22 @@ async function uploadFile(file) {
         "Upload done! Processing started. Check Slack for updates.",
         "success",
       );
-      fileInput.value = "";
-      fileInfoDiv.style.display = "none";
+      reset();
     } else {
       showStatus(`Error while uploading file: ${result.error}`, "error");
+      reset();
     }
   } catch (error) {
     showStatus(`Error while uploading file: ${error.message}`, "error");
-  } finally {
-    uploadArea.classList.remove("uploading...");
+    reset();
   }
+}
+
+function reset() {
+  fileInput.value = "";
+  fileInfoDiv.style.display = "none";
+  uploadArea.classList.remove("uploading");
+  uploadArea.classList.remove("dragover");
 }
 
 function showStatus(message, type) {
