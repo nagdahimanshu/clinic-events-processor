@@ -2,7 +2,7 @@ import express from "express";
 import uploadRoutes from "./routes/upload";
 import { logger } from "./shared/logger";
 import { config } from "./shared/config";
-import { requestLogger } from "./middleware";
+import { requestLogger, errorHandler } from "./middleware";
 
 const app = express();
 
@@ -16,6 +16,9 @@ app.use("/api", uploadRoutes);
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+// Error handling middleware
+app.use(errorHandler);
 
 // Start server
 app.listen(config.port, () => {
