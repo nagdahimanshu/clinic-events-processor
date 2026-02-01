@@ -83,7 +83,6 @@ export async function processCSV(
               if (!weeklyData[weekKey]) {
                 weeklyData[weekKey] = {
                   revenue: 0,
-                  revenuePerTreatment: 0,
                   revenueByTreatmentType: {},
                   appointments: 0,
                   bookings: 0,
@@ -97,21 +96,17 @@ export async function processCSV(
               if (!isNaN(revenue) && revenue >= 0) {
                 weeklyData[weekKey].revenue += revenue;
 
-                // Track revenue per treatment
+                // Track revenue by treatment type
                 if (revenue > 0) {
-                  const originalEventType = row.event_type || "UNKNOWN";
+                  const treatmentType = row.treatment_type || "UNKNOWN";
                   if (
-                    !weeklyData[weekKey].revenueByTreatmentType[
-                      originalEventType
-                    ]
+                    !weeklyData[weekKey].revenueByTreatmentType[treatmentType]
                   ) {
-                    weeklyData[weekKey].revenueByTreatmentType[
-                      originalEventType
-                    ] = 0;
+                    weeklyData[weekKey].revenueByTreatmentType[treatmentType] =
+                      0;
                   }
-                  weeklyData[weekKey].revenueByTreatmentType[
-                    originalEventType
-                  ] += revenue;
+                  weeklyData[weekKey].revenueByTreatmentType[treatmentType] +=
+                    revenue;
                 }
               }
 
@@ -150,15 +145,6 @@ export async function processCSV(
       })
       .on("end", () => {
         currProgress.endTime = Date.now();
-
-        // Calculate revenue per treatment for each week
-        Object.keys(weeklyData).forEach((week) => {
-          const data = weeklyData[week];
-          data.revenuePerTreatment =
-            data.treatmentsCompleted > 0
-              ? data.revenue / data.treatmentsCompleted
-              : 0;
-        });
 
         // Create final analytics
         let analytics: WeeklyAnalytics | { message: string };

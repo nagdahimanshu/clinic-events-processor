@@ -1,24 +1,27 @@
 /**
  * Get the start and end dates of a week from a date
  */
-export function getWeekDateRange(date: Date): { start: Date; end: Date } {
+export function getWeekDateRange(date: Date): {
+  startDate: Date;
+  endDate: Date;
+} {
   const d = new Date(date);
   const dayNum = d.getDay() || 7; // Convert Sunday to 7 last day of week
   const diff = d.getDate() - dayNum + 1; // Get Monday of the week
 
-  const start = new Date(d);
-  start.setDate(diff);
-  start.setHours(0, 0, 0, 0);
+  const startDate = new Date(d);
+  startDate.setDate(diff);
+  startDate.setHours(0, 0, 0, 0);
 
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6); // Sunday
-  end.setHours(23, 59, 59, 999);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6); // Sunday
+  endDate.setHours(23, 59, 59, 999);
 
-  return { start, end };
+  return { startDate, endDate };
 }
 
 export function formatWeekDateRange(date: Date): string {
-  const { start, end } = getWeekDateRange(date);
+  const { startDate, endDate } = getWeekDateRange(date);
 
   const formatDate = (d: Date): string => {
     const year = d.getFullYear();
@@ -27,8 +30,8 @@ export function formatWeekDateRange(date: Date): string {
     return `${year}-${month}-${day}`;
   };
 
-  const startStr = formatDate(start);
-  const endStr = formatDate(end);
+  const startDateStr = formatDate(startDate);
+  const endDateStr = formatDate(endDate);
 
-  return `${startStr} - ${endStr}`;
+  return `${startDateStr} - ${endDateStr}`;
 }

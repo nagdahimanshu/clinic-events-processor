@@ -13,6 +13,7 @@ export interface CSVEventSchema {
   clinic_id: string;
   patient_id: string;
   event_type: string;
+  treatment_type?: string;
   event_timestamp: string;
   revenue_amount: string;
   channel?: string;
@@ -20,7 +21,6 @@ export interface CSVEventSchema {
 
 export interface WeeklyMetrics {
   revenue: number;
-  revenuePerTreatment: number;
   revenueByTreatmentType: Record<string, number>;
   appointments: number;
   bookings: number;
