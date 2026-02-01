@@ -48,17 +48,26 @@ export function formatProgressMessage(
   metrics: ProcessingMetrics,
 ): string {
   return (
-    `Progress Update (${jobId})\n` +
+    `*Progress Update*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `Job ID: ${jobId}\n` +
     `Rows processed: ${metrics.totalRows}\n` +
     `Errors: ${metrics.errors}\n` +
     `Revenue so far: $${metrics.revenue.toFixed(2)}\n` +
     `Event types: ${Object.keys(metrics.eventTypes).length}\n` +
-    `Clinics: ${Object.keys(metrics.clinics).length}`
+    `Clinics: ${Object.keys(metrics.clinics).length}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
   );
 }
 
 export function formatStartMessage(jobId: string, filename: string): string {
-  return `Processing started for job ${jobId}\n` + `File: ${filename}\n`;
+  return (
+    `*Processing Started*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `Job ID: ${jobId}\n` +
+    `File: ${filename}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
+  );
 }
 
 export function formatCompletionMessage(
@@ -69,8 +78,10 @@ export function formatCompletionMessage(
   const endTime = metrics.endTime || Date.now();
   const duration = ((endTime - metrics.startTime) / 1000).toFixed(2);
 
-  let message = `Processing Complete (${jobId})\n\n`;
-  message += `Summary:\n`;
+  let message = `*Processing Complete*\n`;
+  message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  message += `Job ID: ${jobId}\n\n`;
+  message += `*Summary:*\n`;
   message += `• Total Rows: ${metrics.totalRows}\n`;
   message += `• Errors: ${metrics.errors}\n`;
   message += `• Total Revenue: $${metrics.revenue.toFixed(2)}\n`;
@@ -78,7 +89,7 @@ export function formatCompletionMessage(
 
   // Week-by-week analytics
   if ("weeks" in weekComparison && weekComparison.weeks.length > 0) {
-    message += `Weekly Analytics (${weekComparison.totalWeeks} week${weekComparison.totalWeeks > 1 ? "s" : ""}):\n\n`;
+    message += `*Weekly Analytics* (${weekComparison.totalWeeks} week${weekComparison.totalWeeks > 1 ? "s" : ""}):\n\n`;
 
     weekComparison.weeks.forEach((weekData: WeeklyData) => {
       const m = weekData.metrics;
@@ -103,6 +114,8 @@ export function formatCompletionMessage(
     message += `${weekComparison.message}\n`;
   }
 
+  message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+
   return message;
 }
 
@@ -112,7 +125,11 @@ export function formatErrorMessage(
   error: string,
 ): string {
   return (
-    `Error while processing CSV file: ${filename}and ${jobId}\n` +
-    `Error: ${error}`
+    `*Processing Error*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `Job ID: ${jobId}\n` +
+    `File: ${filename}\n` +
+    `Error: ${error}\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`
   );
 }
