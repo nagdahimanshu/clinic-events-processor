@@ -1,6 +1,7 @@
 import { Readable } from "stream";
 
 import { getS3Storage } from "./storage";
+import { processCSV } from "../domain/csvProcessor";
 import { logger } from "../shared/logger";
 import { config } from "../shared/config";
 
@@ -9,13 +10,6 @@ export interface ProcessJob {
   s3Key?: string;
   filename: string;
   stream?: Readable;
-}
-
-// TODO: implement logic for CSV handling like calculate analytics
-async function processCSV(): Promise<{
-  metrics: any;
-}> {
-  return { metrics: {} };
 }
 
 /**
@@ -44,8 +38,25 @@ export async function processFile(job: ProcessJob): Promise<void> {
       throw new Error("Either s3Key or stream must be provided");
     }
 
-    const { metrics } = await processCSV();
-    logger.info("CSV processing completed", {});
+    const { metrics } = await processCSV(
+      stream,
+      (progressMetrics) => {
+        logger.debug("Processing progress", {
+          jobId,
+          rowsProcessed: progressMetrics.totalRows,
+          errors: progressMetrics.errors,
+        });
+      },
+      config.progressIntervalMs,
+    );
+
+    logger.info("CSV processing completed", {
+      jobId,
+      totalRows: metrics.totalRows,
+      errors: metrics.errors,
+      revenue: metrics.revenue,
+      duration: metrics.endTime! - metrics.startTime,
+    });
 
     // Clean up file from S3 if it was uploaded
     if (s3Key && config.useS3) {
