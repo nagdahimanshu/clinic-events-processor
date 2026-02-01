@@ -46,7 +46,7 @@ Please check [ARCHITECTURE_DECISIONS.md](docs/ARCHITECTURE_DECISIONS.md) for det
 
 ### Option 1: Running Locally
 
-You will need Node.js 18+ installed.
+You will need Node.js 20+ installed.
 
 #### 1. Clone and Install
 
@@ -57,6 +57,8 @@ npm install
 ```
 
 #### 2. Set Up Environment File
+
+**Note:** This step is required for both local and Docker setups.
 
 Copy `.env.example` to `.env` and update the configuration:
 
@@ -75,7 +77,6 @@ cp env.example .env
 - `AWS_SECRET_ACCESS_KEY` - AWS credentials (only needed if using S3)
 - `LOG_LEVEL` - Logging level: debug, info, warn, error
 
-
 #### 3. Start the Application
 
 ```bash
@@ -89,6 +90,8 @@ This will:
 Check if the server is running at: `http://localhost:3000/health` and it should return `{"status":"ok"}`
 
 ### Option 2: Running with Docker
+
+**Note:** Make sure you've completed the "Set Up Environment File" step above before running Docker.
 
 Run the application with Docker Compose:
 
@@ -131,10 +134,8 @@ The following fields are mandatory and must be present in every row:
 - `notes` - Additional notes
 
 **Validation:**
-- All required fields must be present and non-empty
 - `event_timestamp` must be a valid ISO 8601 date format
 - `revenue_amount` must be a valid number and non-negative (if provided)
-- Rows with validation errors will be skipped during processing
 
 ## Development
 
@@ -149,9 +150,10 @@ The following fields are mandatory and must be present in every row:
 ## Future Improvements
 
 If I had more time to work on this, here are the key things I would focus on to make it production ready and scalable:
-
-- I would add request timeouts to prevent hanging requests and set a max processing time per file.
+- I would probably migrate processing to an async queue (SQS) so uploads don't block and we can handle more concurrent requests.
 - Right now Slack notifications can fail silently. I would add retry logic with exponential backoff so notifications are more reliable.
-- I would probably migrate processing to an async queue (SQS) so uploads don't block and we can handle more concurrent requests. This would also make it easier to track job status.
+- Add CSV rows validation in order to avoid processing invalid rows
 - Also need to add rate limiting per user or IP to prevent abuse.
 - Right now there are only a few unit tests. I would add integration tests for the API endpoints and some basic E2E tests.
+- Handle CSV parsing edge cases like unclosed quotes, wrong delimiters and corrupted files.
+- Create idempotent keys based on file content (e.g., file hash) so the same file uploaded concurrently by different users doesn't cause race conditions or duplicate processing.

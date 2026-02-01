@@ -5,7 +5,7 @@ This document explains the key architectural decisions I made and why. I'll walk
 ## Why Express Instead of Lambda?
 
 I chose Express instead of Lambda because I think development speed matters a lot. With Express, I can make a code change and test it in about 30 seconds. With Lambda, I would need to build, deploy and then test which means I would get maybe 2-3 iterations done instead of 10+.
-The good news is that I designed the architecture so the domain logic is completely framework-agnostic. Whenever it's needed to scale, migrating to Lambda would be straightforward. The core business logic wouldn't need to change at all.
+The good thing is that I designed the architecture so the domain logic is completely framework-agnostic. Whenever it's needed to scale, migrating to Lambda would be straightforward. The core business logic wouldn't need to change at all.
 
 ## Incremental Analytics
 
