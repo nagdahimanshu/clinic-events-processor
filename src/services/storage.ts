@@ -3,6 +3,27 @@ import { Readable } from "stream";
 import { config } from "../shared/config";
 import { logger } from "../shared/logger";
 
+interface S3ClientType {
+  send: (command: unknown) => Promise<{ Body: Readable }>;
+}
+
+interface PutObjectCommandType {
+  new (params: {
+    Bucket: string;
+    Key: string;
+    Body: Buffer | Readable;
+    ContentType: string;
+  }): unknown;
+}
+
+interface GetObjectCommandType {
+  new (params: { Bucket: string; Key: string }): unknown;
+}
+
+interface DeleteObjectCommandType {
+  new (params: { Bucket: string; Key: string }): unknown;
+}
+
 /**
  * Interface for S3 storage service
  */
@@ -14,10 +35,10 @@ export interface IStorage {
 
 export class S3Storage implements IStorage {
   private bucket: string;
-  private s3: any;
-  private PutObjectCommand: any;
-  private GetObjectCommand: any;
-  private DeleteObjectCommand: any;
+  private s3: S3ClientType | null = null;
+  private PutObjectCommand: PutObjectCommandType | null = null;
+  private GetObjectCommand: GetObjectCommandType | null = null;
+  private DeleteObjectCommand: DeleteObjectCommandType | null = null;
 
   constructor(bucket: string) {
     this.bucket = bucket;
@@ -27,13 +48,11 @@ export class S3Storage implements IStorage {
         PutObjectCommand,
         GetObjectCommand,
         DeleteObjectCommand,
-      } =
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        require("@aws-sdk/client-s3");
-      this.s3 = new S3Client({});
-      this.PutObjectCommand = PutObjectCommand;
-      this.GetObjectCommand = GetObjectCommand;
-      this.DeleteObjectCommand = DeleteObjectCommand;
+      } = require("@aws-sdk/client-s3");
+      this.s3 = new S3Client({}) as S3ClientType;
+      this.PutObjectCommand = PutObjectCommand as PutObjectCommandType;
+      this.GetObjectCommand = GetObjectCommand as GetObjectCommandType;
+      this.DeleteObjectCommand = DeleteObjectCommand as DeleteObjectCommandType;
       logger.debug("S3 storage has been initialized successfully", { bucket });
     } catch (error: unknown) {
       const errorMessage =
@@ -45,7 +64,7 @@ export class S3Storage implements IStorage {
   }
 
   async save(file: Buffer | Readable, key: string): Promise<string> {
-    if (!this.s3) {
+    if (!this.s3 || !this.PutObjectCommand) {
       throw new Error("S3 client is not available");
     }
 
@@ -67,7 +86,7 @@ export class S3Storage implements IStorage {
   }
 
   async getStream(key: string): Promise<Readable> {
-    if (!this.s3) {
+    if (!this.s3 || !this.GetObjectCommand) {
       throw new Error("S3 client is not available");
     }
     const response = await this.s3.send(
@@ -80,7 +99,7 @@ export class S3Storage implements IStorage {
   }
 
   async delete(key: string): Promise<void> {
-    if (!this.s3) {
+    if (!this.s3 || !this.DeleteObjectCommand) {
       return;
     }
 

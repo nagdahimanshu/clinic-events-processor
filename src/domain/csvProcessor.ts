@@ -154,7 +154,7 @@ export async function processCSV(
             onProgress({ ...currProgress });
             lastProgressTime = now;
           }
-        } catch (error) {
+        } catch {
           currProgress.errors++;
         }
       })

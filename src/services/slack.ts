@@ -2,7 +2,11 @@ import axios from "axios";
 
 import { config } from "../shared/config";
 import { logger } from "../shared/logger";
-import { WeeklyData } from "../types";
+import {
+  ProcessingMetrics,
+  WeeklyAnalytics,
+  WeeklyData,
+} from "../types";
 
 export async function sendSlackMessage(message: string): Promise<void> {
   if (!config.slackWebhookUrl) {
@@ -39,7 +43,10 @@ export async function sendSlackMessage(message: string): Promise<void> {
   }
 }
 
-export function formatProgressMessage(jobId: string, metrics: any): string {
+export function formatProgressMessage(
+  jobId: string,
+  metrics: ProcessingMetrics,
+): string {
   return (
     `Progress Update (${jobId})\n` +
     `Rows processed: ${metrics.totalRows}\n` +
@@ -56,10 +63,11 @@ export function formatStartMessage(jobId: string, filename: string): string {
 
 export function formatCompletionMessage(
   jobId: string,
-  metrics: any,
-  weekComparison: any,
+  metrics: ProcessingMetrics,
+  weekComparison: WeeklyAnalytics | { message: string },
 ): string {
-  const duration = ((metrics.endTime - metrics.startTime) / 1000).toFixed(2);
+  const endTime = metrics.endTime || Date.now();
+  const duration = ((endTime - metrics.startTime) / 1000).toFixed(2);
 
   let message = `Processing Complete (${jobId})\n\n`;
   message += `Summary:\n`;
@@ -69,7 +77,7 @@ export function formatCompletionMessage(
   message += `• Processing Time: ${duration}s\n\n`;
 
   // Week-by-week analytics
-  if (weekComparison.weeks && weekComparison.weeks.length > 0) {
+  if ("weeks" in weekComparison && weekComparison.weeks.length > 0) {
     message += `Weekly Analytics (${weekComparison.totalWeeks} week${weekComparison.totalWeeks > 1 ? "s" : ""}):\n\n`;
 
     weekComparison.weeks.forEach((weekData: WeeklyData) => {
@@ -91,7 +99,7 @@ export function formatCompletionMessage(
       message += `  Appointments: ${m.appointments}\n`;
       message += `  Bookings: ${m.bookings}\n\n`;
     });
-  } else {
+  } else if ("message" in weekComparison) {
     message += `${weekComparison.message}\n`;
   }
 
