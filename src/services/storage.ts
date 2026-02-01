@@ -27,15 +27,19 @@ export class S3Storage implements IStorage {
         PutObjectCommand,
         GetObjectCommand,
         DeleteObjectCommand,
-      } = require("@aws-sdk/client-s3");
+      } =
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        require("@aws-sdk/client-s3");
       this.s3 = new S3Client({});
       this.PutObjectCommand = PutObjectCommand;
       this.GetObjectCommand = GetObjectCommand;
       this.DeleteObjectCommand = DeleteObjectCommand;
       logger.debug("S3 storage has been initialized successfully", { bucket });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       logger.warn("Unable to initialze S3 storage", {
-        error: error.message,
+        error: errorMessage,
       });
     }
   }
@@ -88,11 +92,13 @@ export class S3Storage implements IStorage {
         }),
       );
       logger.debug("S3 object has been deleted", { key, bucket: this.bucket });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       logger.warn("Error while deleting S3 object", {
         key,
         bucket: this.bucket,
-        error: error.message,
+        error: errorMessage,
       });
     }
   }

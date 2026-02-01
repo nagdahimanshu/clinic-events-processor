@@ -1,16 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import busboy from "busboy";
-import { Readable } from "stream";
 
 import { config } from "../shared/config";
 import { logger } from "../shared/logger";
-
-export interface StreamingFile {
-  stream: Readable;
-  filename: string;
-  encoding: string;
-  mimetype: string;
-}
+import { RequestWithStreamingFile, StreamingFile } from "../types";
 
 /**
  * Streaming file
@@ -52,7 +45,7 @@ export function streamingUpload(
       mimetype: mimeType,
     };
 
-    (req as any).streamingFile = streamingFile;
+    (req as RequestWithStreamingFile).streamingFile = streamingFile;
     next();
   });
 

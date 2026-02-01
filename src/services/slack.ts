@@ -29,10 +29,11 @@ export async function sendSlackMessage(message: string): Promise<void> {
     logger.debug("Message has been successfully sent", {
       messageLength: message.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Graceful handling in case slack webhook URL is not configured
-    logger.warn("Faild to send the message", {
-      error: error.message,
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.warn("Failed to send the message", {
+      error: errorMessage,
       messageLength: message.length,
     });
   }

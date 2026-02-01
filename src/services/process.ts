@@ -100,14 +100,15 @@ export async function processFile(job: ProcessJob): Promise<void> {
         s3Key,
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     csvProcessingErrors.inc({ error_type: "processing_error" });
     logger.error("Error while processing CSV", error, {
       jobId,
       s3Key,
       filename,
     });
-    await sendSlackMessage(formatErrorMessage(jobId, filename, error.message));
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    await sendSlackMessage(formatErrorMessage(jobId, filename, errorMessage));
     throw error;
   }
 }

@@ -40,10 +40,12 @@ export async function uploadFile(
         jobId,
         s3Key,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error("Error while uploading to s3", error, { jobId, filename });
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
-        `Error while uploading to S3: ${error.message}. Please check AWS credentials and bucket configuration.`,
+        `Error while uploading to S3: ${errorMessage}. Please check AWS credentials and bucket configuration.`,
       );
     }
 

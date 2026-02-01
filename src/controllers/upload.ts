@@ -1,17 +1,15 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-import { StreamingFile } from "../middleware";
 import { logger } from "../shared/logger";
 import { fileUploadTotal, activeJobs } from "../services/metrics";
 import { processFile } from "../services/process";
 import { uploadFile } from "../services/upload";
+import { RequestWithStreamingFile } from "../types";
 
 export class UploadController {
   async upload(req: Request, res: Response): Promise<void> {
-    const streamingFile = (req as any).streamingFile as
-      | StreamingFile
-      | undefined;
+    const streamingFile = (req as RequestWithStreamingFile).streamingFile;
 
     if (!streamingFile) {
       logger.warn("Missing file in request");
@@ -43,7 +41,7 @@ export class UploadController {
         .then(() => {
           activeJobs.dec();
         })
-        .catch((error: any) => {
+        .catch((error: unknown) => {
           activeJobs.dec();
           logger.error("Error occured while processing file", error, {
             jobId: uploadResult.jobId,
@@ -57,14 +55,16 @@ export class UploadController {
         message:
           "File has been uploaded successfully. Check Slack for progress.",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       fileUploadTotal.inc({ status: "error" });
       activeJobs.dec();
       logger.error(
         `Error occured while uploading file: ${streamingFile.filename} with error`,
         error,
       );
-      res.status(500).json({ error: error.message });
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: errorMessage });
     }
   }
 }

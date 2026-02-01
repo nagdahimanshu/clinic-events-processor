@@ -45,7 +45,7 @@ export async function processCSV(
     columns: true,
     skip_empty_lines: true,
     trim: true,
-  } as any);
+  });
 
   return new Promise<{
     currProgress: ProcessingMetrics;
