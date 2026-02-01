@@ -1,13 +1,19 @@
-import { Registry, Counter, Histogram, Gauge } from "prom-client";
+import { Registry, Counter, Gauge, collectDefaultMetrics } from "prom-client";
 
 /**
  * Prometheus metrics registry
  */
 export const register = new Registry();
 
-// Default metrics (CPU, memory)
+// Set default labels for all metrics
 register.setDefaultLabels({
   app: "client-events-processor",
+});
+
+// Collect default metrics (CPU, memory, event loop, etc.)
+collectDefaultMetrics({
+  register,
+  prefix: "nodejs_",
 });
 
 // File upload metrics
