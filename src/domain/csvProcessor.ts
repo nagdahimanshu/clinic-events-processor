@@ -10,6 +10,8 @@ import {
 } from "../types";
 import { getWeekDateRange, formatWeekDateRange } from "../utils/date";
 import { EVENT_TYPES, EVENT_PATTERNS } from "../shared/constants";
+import { validateCSVHeaders } from "../utils/csvSchema";
+import { logger } from "../shared/logger";
 
 export interface ProgressCallback {
   (metrics: ProcessingMetrics): void;
@@ -47,6 +49,8 @@ export async function processCSV(
     trim: true,
   });
 
+  let headersValidated = false;
+
   return new Promise<{
     currProgress: ProcessingMetrics;
     analytics: WeeklyAnalytics | { message: string };
@@ -55,6 +59,20 @@ export async function processCSV(
       .pipe(parser)
       .on("data", (row: CSVEventSchema) => {
         try {
+          // Validate headers
+          if (!headersValidated) {
+            const headers = Object.keys(row);
+            const headerValidation = validateCSVHeaders(headers);
+            headersValidated = true;
+
+            if (!headerValidation.isValid) {
+              logger.warn("Error while validating CSV header", {
+                errors: headerValidation.errors,
+              });
+              currProgress.errors += headerValidation.errors.length;
+            }
+          }
+
           currProgress.totalRows++;
           const revenue = parseFloat(row.revenue_amount || "0");
           // Validate revenue: must be a valid number and >= 0
