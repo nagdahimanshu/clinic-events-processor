@@ -1,9 +1,9 @@
 import { Readable } from "stream";
 
 import { getS3Storage } from "./storage";
-import { logger } from "../shared/logger";
-import { config } from "../shared/config";
 import { sendSlackMessage, formatStartMessage } from "./slack";
+import { config } from "../shared/config";
+import { logger } from "../shared/logger";
 
 export interface UploadResult {
   jobId: string;

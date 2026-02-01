@@ -16,9 +16,7 @@ export const config = {
   slackWebhookUrl: process.env.SLACK_WEBHOOK_URL || "",
 
   // Logging
-  logLevel:
-    process.env.LOG_LEVEL ||
-    (process.env.NODE_ENV === "production" ? "info" : "debug"),
+  logLevel: process.env.LOG_LEVEL || "debug",
 
   // Processing
   progressIntervalMs: parseInt(process.env.PROGRESS_INTERVAL_MS || "10000", 10),

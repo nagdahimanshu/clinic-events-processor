@@ -1,5 +1,6 @@
 import { Readable } from "stream";
 
+import { csvProcessingErrors } from "./metrics";
 import { getS3Storage } from "./storage";
 import {
   sendSlackMessage,
@@ -63,6 +64,13 @@ export async function processFile(job: ProcessJob): Promise<void> {
       config.progressIntervalMs,
     );
 
+    if (currProgress.errors > 0) {
+      csvProcessingErrors.inc(
+        { error_type: "parse_error" },
+        currProgress.errors,
+      );
+    }
+
     logger.info("CSV processing completed", {
       jobId,
       totalRows: currProgress.totalRows,
@@ -93,6 +101,7 @@ export async function processFile(job: ProcessJob): Promise<void> {
       });
     }
   } catch (error: any) {
+    csvProcessingErrors.inc({ error_type: "processing_error" });
     logger.error("Error while processing CSV", error, {
       jobId,
       s3Key,

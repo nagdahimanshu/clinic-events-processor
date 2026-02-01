@@ -1,7 +1,7 @@
 import { Readable } from "stream";
 
-import { logger } from "../shared/logger";
 import { config } from "../shared/config";
+import { logger } from "../shared/logger";
 
 /**
  * Interface for S3 storage service

@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-import { logger } from "../shared/logger";
-import { uploadFile } from "../services/upload";
-import { processFile } from "../services/process";
 import { StreamingFile } from "../middleware";
+import { logger } from "../shared/logger";
+import { fileUploadTotal, activeJobs } from "../services/metrics";
+import { processFile } from "../services/process";
+import { uploadFile } from "../services/upload";
 
 export class UploadController {
   async upload(req: Request, res: Response): Promise<void> {
@@ -22,6 +23,8 @@ export class UploadController {
       const jobId = uuidv4();
       const s3Key = `uploads/${jobId}/${streamingFile.filename}`;
 
+      activeJobs.inc();
+
       const uploadResult = await uploadFile(
         streamingFile.stream,
         streamingFile.filename,
@@ -29,17 +32,24 @@ export class UploadController {
         s3Key,
       );
 
+      fileUploadTotal.inc({ status: "success" });
+
       processFile({
         jobId: uploadResult.jobId,
         s3Key: uploadResult.s3Key,
         filename: uploadResult.filename,
         stream: uploadResult.stream,
-      }).catch((error: any) => {
-        logger.error("Error occured while processing file", error, {
-          jobId: uploadResult.jobId,
-          filename: uploadResult.filename,
+      })
+        .then(() => {
+          activeJobs.dec();
+        })
+        .catch((error: any) => {
+          activeJobs.dec();
+          logger.error("Error occured while processing file", error, {
+            jobId: uploadResult.jobId,
+            filename: uploadResult.filename,
+          });
         });
-      });
 
       res.json({
         jobId: uploadResult.jobId,
@@ -48,6 +58,8 @@ export class UploadController {
           "File has been uploaded successfully. Check Slack for progress.",
       });
     } catch (error: any) {
+      fileUploadTotal.inc({ status: "error" });
+      activeJobs.dec();
       logger.error(
         `Error occured while uploading file: ${streamingFile.filename} with error`,
         error,

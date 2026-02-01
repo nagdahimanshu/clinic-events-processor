@@ -1,8 +1,10 @@
 import express from "express";
+
+import { requestLogger, errorHandler } from "./middleware";
 import uploadRoutes from "./routes/upload";
+import metricsRoutes from "./routes/metrics";
 import { logger } from "./shared/logger";
 import { config } from "./shared/config";
-import { requestLogger, errorHandler } from "./middleware";
 
 const app = express();
 
@@ -13,6 +15,7 @@ app.use(requestLogger);
 
 // Routes
 app.use("/api", uploadRoutes);
+app.use("/", metricsRoutes); // Prometheus metrics endpoint
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
